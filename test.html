@@ -1,163 +1,587 @@
 <!doctype html>
 
 
+
     
     
-    Rscripts pp
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-76T4bxfPYZHkDzNDMnGgdrfZLSG8Uq0rQxOo/3fWnbmJQ7bJ9tmv3tdxBlW8n9R1jwKpLMg+tpa96w21S8CcDg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #2c2f33;
-            color: white;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #1c1c1c;
+            color: #fff;
         }
 
-        h1 {
+        header {
+            background-color: #000;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 4px 2px -2px gray;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        #search-bar {
+            margin-bottom: 2rem;
             text-align: center;
         }
 
-        select, input {
+        #search-input {
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 400px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 5px; /* Squircle effect */
-            width: calc(100% - 22px); /* Full width minus padding */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        button {
-            background-color: #7289da;
-            border: none;
-            color: white;
-            padding: 10px;
+        #search-suggestions {
+            max-width: 400px;
+            margin: 0 auto 10px auto;
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #search-suggestions div {
+            padding: 0.5rem;
             cursor: pointer;
+        }
+
+        #search-suggestions div:hover {
+            background-color: #eee;
+        }
+
+        #search-button,
+        #back-to-main {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            background-color: #e50914;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #search-button:hover,
+        #back-to-main:hover {
+            background-color: #f40612;
+        }
+
+        #movie-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .movie {
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            width: calc(50% - 20px);
+            max-width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .movie:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .movie img {
             width: 100%;
-            border-radius: 5px; /* Squircle effect */
+            height: auto;
         }
 
-        button:hover {
-            background-color: #5b6eae;
+        .movie-title {
+            font-size: 1.2rem;
+            margin: 0;
+            text-align: center;
+            padding: 0.5rem;
+            color: #fff;
+            background-color: #444;
         }
 
-        #scripts-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        .skeleton {
+            background-color: #444;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        #movie-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 80%;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            box-sizing: border-box;
+            border-radius: 10px;
+        }
+
+        #movie-modal img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        #movie-modal h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: #333;
+        }
+
+        #movie-modal p {
+            margin-top: 0.5rem;
+            text-align: center;
+            color: #333;
+        }
+
+        #modal-close {
+            background-color: #e50914;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border-radius: 5px;
+        }
+
+        #modal-close:hover {
+            background-color: #f40612;
+        }
+
+        #modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        #modal-content {
+            overflow: hidden;
+        }
+
+        #modal-content:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        #movie-details {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #333;
+        }
+
+        #movie-details h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        #movie-details p {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        #movie-details .detail-item {
+            margin-bottom: 0.5rem;
+        }
+
+        #search-input::placeholder {
+            color: #999;
+        }
+
+        .cast-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
-            padding: 10px;
+            margin-top: 10px;
         }
 
-        .script-item {
-            background-color: #40444b; /* Background for script items */
-            padding: 10px;
-            border-radius: 5px; /* Squircle effect */
+        .cast-item {
+            text-align: center;
         }
 
-        textarea {
+        .cast-item img {
+            width: 100px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        #loading-indicator {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        #pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+            margin: 0 5px;
+            border-radius: 5px;
+        }
+
+        .page-btn:hover {
+            background-color: #eee;
+        }
+
+        .favorite-btn {
+            background-color: #ff6347;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .favorite-btn:hover {
+            background-color: #ff4500;
+        }
+
+        .trailer-container {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .trailer-container iframe {
             width: 100%;
-            height: 60px; /* Height for comment box */
-            border-radius: 5px; /* Squircle effect */
-            border: none; /* Remove default border */
+            max-width: 600px;
+            height: 350px;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .error-message {
+            text-align: center;
+            color: red;
+            margin-top: 1rem;
         }
     </style>
 
 
-    <h1>boxclip</h1>
 
-    <select id="scriptType" onchange="fetchScripts()">
-        <option value="latest" />Latest Scripts
-    </select>
+    <header>
+        <h1>Dure X Movies</h1>
+<p>By Malik Hassan Zayn</p>
+    </header>
 
-    <button onclick="fetchScripts()">Fetch Latest Scripts</button>
-    <button onclick="fetchTrendingScripts()">Fetch Trending Scripts</button>
+    <main>
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search for movies..." />
+            <button id="search-button">Search</button>
+            <div id="search-suggestions"></div>
+            <button id="back-to-main">Back to Popular Movies</button>
+        </div>
 
-    <!-- Search Box and Button -->
-    <input type="text" id="searchBox" placeholder="Search scripts..." />
-    <button onclick="searchScripts()">Search</button>
+        <div id="loading-indicator">Loading...</div>
 
-    <div id="scripts-container"></div>
+        <section id="movie-list">
+            <div class="movie skeleton"></div>
+            <div class="movie skeleton"></div>
+            <div class="movie skeleton"></div>
+        </section>
+
+        <div id="pagination"></div>
+
+        <div id="movie-modal">
+            <button id="modal-close">&times;</button>
+            <div id="modal-content">
+                <div id="movie-details">
+                    <img id="modal-poster" src="" alt="Movie Poster" />
+                    <h3 id="modal-title"></h3>
+                    <p id="modal-overview"></p>
+                    <p class="detail-item" id="modal-director"></p>
+                    <p class="detail-item" id="modal-budget"></p>
+                    <p class="detail-item" id="modal-revenue"></p>
+                    <p class="detail-item" id="modal-production-companies"></p>
+                    <div class="cast-container" id="cast-list"></div>
+                    <div class="trailer-container" id="trailer"></div>
+                    <button class="favorite-btn" id="add-to-favorites">Add to Favorites</button>
+                </div>
+            </div>
+        </div>
+        <div id="modal-backdrop"></div>
+        <div class="error-message" id="error-message"></div>
+    </main>
 
     <script>
-        let allScripts = []; // Store all fetched scripts for searching
+        const API_KEY = '91e88abaf406067f92b5f30166d60a06';
+        const API_URL = 'https://api.themoviedb.org/3';
+        const API_READ_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5MWU4OGFiYWY0MDYwNjdmOTJiNWYzMDE2NmQ2MGEwNiIsInN1YiI6IjY2NDk4MjhjYjA2ZDYzNTc0MThlYzk5YiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UIQhaFkvMJeCO-wrnt_WP-F-4f1qPrEdF-fETLgcbQY';
+        const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
-        async function fetchScripts() {
-            const url = 'https://rscripts.net/api/v2/scripts?page=1&orderBy=date&sort=desc';
-            const response = await fetch(url);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Current Page:", data.info.currentPage);
-                console.log("Max Pages:", data.info.maxPages);
-                allScripts = data.scripts; // Store scripts for searching
-                displayScripts(allScripts); // Display all fetched scripts
-            } else {
-                alert('Failed to fetch latest scripts!');
-                console.error('Error fetching scripts:', response.statusText);
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPopularMovies();
 
-        async function fetchTrendingScripts() {
-            const url = 'https://rscripts.net/api/v2/trending';
-            const response = await fetch(url);
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    console.log("Trending Scripts:", data.success);
-                    allScripts = data.scripts; // Store scripts for searching
-                    displayScripts(allScripts); // Display all fetched scripts
+            document.getElementById('search-button').addEventListener('click', () => {
+                const query = document.getElementById('search-input').value;
+                searchMovies(query);
+            });
+
+            document.getElementById('search-input').addEventListener('input', async (event) => {
+                const query = event.target.value;
+                if (query.length > 2) {
+                    const suggestions = await getSearchSuggestions(query);
+                    showSearchSuggestions(suggestions);
                 } else {
-                    console.error("Error:", data.error);
-                    alert('Failed to fetch trending scripts!');
+                    hideSearchSuggestions();
                 }
-            } else {
-                alert('Failed to fetch trending scripts!');
-                console.error('Error fetching scripts:', response.statusText);
+            });
+
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+
+            document.getElementById('back-to-main').addEventListener('click', (event) => {
+                event.preventDefault();
+                loadPopularMovies();
+            });
+        });
+
+        async function loadPopularMovies(page = 1) {
+            toggleLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/movie/popular?api_key=${API_KEY}&page=${page}`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderMovies(data.results);
+                renderPagination(data.page, data.total_pages);
+            } catch (error) {
+                showError('Failed to load movies 😕 - hassanxzayn@gmail.com');
+            } finally {
+                toggleLoading(false);
             }
         }
 
-        function displayScripts(scripts) {
-            const scriptsContainer = document.getElementById('scripts-container');
-            scriptsContainer.innerHTML = ''; // Clear previous scripts
+        async function searchMovies(query, page = 1) {
+            toggleLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&page=${page}`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderMovies(data.results);
+                renderPagination(data.page, data.total_pages, query);
+            } catch (error) {
+                showError('Failed to search movies 😕 - hassanxzayn@gmail.com');
+            } finally {
+                toggleLoading(false);
+            }
+        }
 
-            scripts.forEach(script => {
-                const scriptItem = document.createElement('div');
-                scriptItem.classList.add('script-item');
-                scriptItem.innerHTML = `
-                    <h2>${script.title}</h2>
-                    <p>${script.description}</p>
-                    <img style="width: 40px; height: 40px; border-radius: 50%;" src="${script.user?.image || 'https://i.pravatar.cc/300'}" alt="Profile picture of ${script.user?.username || script.creator}">
-                    <p>Creator: ${script.user?.username || script.creator}</p>
-                    <img src="${script.image}" alt="${script.title}">
-                    <textarea id="script-${script._id}" placeholder="Script content will appear here..."></textarea>
+        async function getSearchSuggestions(query) {
+            const response = await fetch(`${API_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+            if (!response.ok) return [];
+            const data = await response.json();
+            return data.results.slice(0, 5);
+        }
+
+        function showSearchSuggestions(suggestions) {
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            suggestionsContainer.innerHTML = suggestions.map(movie => `
+                <div onclick="selectSuggestion('${movie.title}')">${movie.title}</div>
+            `).join('');
+            suggestionsContainer.style.display = 'block';
+        }
+
+        function hideSearchSuggestions() {
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            suggestionsContainer.style.display = 'none';
+        }
+
+        function selectSuggestion(title) {
+            document.getElementById('search-input').value = title;
+            hideSearchSuggestions();
+        }
+
+        function renderMovies(movies) {
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+            if (movies.length === 0) {
+                movieList.innerHTML = '<p>No movies found.</p>';
+                return;
+            }
+            movies.forEach(movie => {
+                const movieElement = document.createElement('div');
+                movieElement.classList.add('movie');
+                movieElement.innerHTML = `
+                    <img src="${IMAGE_URL + movie.poster_path}" alt="${movie.title}">
+                    <div class="movie-title">${movie.title}</div>
                 `;
-
-                const downloadUrl = script.rawScript;
-
-                // Fetch and display the script content
-                fetch(downloadUrl)
-                    .then((response) => response.text())
-                    .then((scriptContent) => {
-                        const textArea = scriptItem.querySelector(`#script-${script._id}`);
-                        textArea.value = scriptContent;
-                    })
-                    .catch((error) => {
-                        console.error(`Error fetching script content for ${script.title}:`, error);
-                    });
-
-                scriptsContainer.appendChild(scriptItem);
+                movieElement.addEventListener('click', () => openModal(movie));
+                movieList.appendChild(movieElement);
             });
         }
 
-        function searchScripts() {
-            const query = document.getElementById('searchBox').value.toLowerCase();
-            
-            // Filter the stored scripts based on the search query
-            const filteredScripts = allScripts.filter(script => 
-                script.title.toLowerCase().includes(query) || 
-                script.description.toLowerCase().includes(query)
-            );
+        function renderPagination(currentPage, totalPages, query = '') {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
 
-            displayScripts(filteredScripts); // Display filtered scripts
+            if (currentPage > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.classList.add('page-btn');
+                prevButton.textContent = 'Previous';
+                prevButton.addEventListener('click', () => {
+                    if (query) {
+                        searchMovies(query, currentPage - 1);
+                    } else {
+                        loadPopularMovies(currentPage - 1);
+                    }
+                });
+                pagination.appendChild(prevButton);
+            }
+
+            if (currentPage < totalPages) {
+                const nextButton = document.createElement('button');
+                nextButton.classList.add('page-btn');
+                nextButton.textContent = 'Next';
+                nextButton.addEventListener('click', () => {
+                    if (query) {
+                        searchMovies(query, currentPage + 1);
+                    } else {
+                        loadPopularMovies(currentPage + 1);
+                    }
+                });
+                pagination.appendChild(nextButton);
+            }
         }
-    </script>
+
+        async function openModal(movie) {
+            toggleLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/movie/${movie.id}?api_key=${API_KEY}&append_to_response=credits,videos`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                document.getElementById('modal-poster').src = IMAGE_URL + data.poster_path;
+                document.getElementById('modal-title').textContent = data.title;
+                document.getElementById('modal-overview').textContent = data.overview;
+                document.getElementById('modal-director').textContent = `Director: ${getDirector(data.credits.crew)}`;
+                document.getElementById('modal-budget').textContent = `Budget: $${formatNumber(data.budget)}`;
+                document.getElementById('modal-revenue').textContent = `Revenue: $${formatNumber(data.revenue)}`;
+                document.getElementById('modal-production-companies').textContent = `Production Companies: ${getProductionCompanies(data.production_companies)}`;
+
+                const castList = document.getElementById('cast-list');
+                castList.innerHTML = data.credits.cast.slice(0, 5).map(cast => `
+                    <div class="cast-item">
+                        <img src="${IMAGE_URL + cast.profile_path}" alt="${cast.name}">
+                        <p>${cast.name}</p>
+                    </div>
+                `).join('');
+
+                const trailer = data.videos.results.find(video => video.type === 'Trailer');
+                const trailerContainer = document.getElementById('trailer');
+                if (trailer) {
+                    trailerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    trailerContainer.innerHTML = '<p>No trailer available.</p>';
+                }
+
+                document.getElementById('add-to-favorites').onclick = () => addToFavorites(movie);
+
+                document.getElementById('movie-modal').style.display = 'block';
+                document.getElementById('modal-backdrop').style.display = 'block';
+            } catch (error) {
+                showError('Failed to load movie details.');
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('movie-modal').style.display = 'none';
+            document.getElementById('modal-backdrop').style.display = 'none';
+}
+
+    function toggleLoading(show) {
+        document.getElementById('loading-indicator').style.display = show ? 'block' : 'none';
+    }
+
+    function showError(message) {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+            errorMessage.textContent = '';
+            errorMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    function getDirector(crew) {
+        const director = crew.find(member => member.job === 'Director');
+        return director ? director.name : 'Unknown';
+    }
+
+    function getProductionCompanies(companies) {
+        return companies.map(company => company.name).join(', ');
+    }
+
+    function formatNumber(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    async function addToFavorites(movie) {
+        // Logic to add movie to favorites goes here
+        console.log('Added to favorites:', movie);
+    }
+</script>
 
 </!doctype>
